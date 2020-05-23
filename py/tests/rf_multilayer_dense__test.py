@@ -41,10 +41,10 @@ def main():
     data   = np.asarray(digits.data,   dtype='float32')
     target = np.asarray(digits.target, dtype='int32')
 
-    X_train, X_test, Y_train, Y_test = train_test_split(data, target, test_size=0.15, random_state=37)
+    X_train_origin, X_test, Y_train, Y_test = train_test_split(data, target, test_size=0.15, random_state=37)
 
     scaler  = preprocessing.StandardScaler()
-    X_train = scaler.fit_transform(X_train)
+    X_train = scaler.fit_transform(X_train_origin)
     X_test  = scaler.transform(X_test)
 
     #-----------------------
@@ -56,8 +56,9 @@ def main():
     layers_specs_lst = [
         (20, "sigmoid"),
     ]
-    for i in range(0, 10):
+    for i in range(0, 3):
         layers_specs_lst.append((40, "sigmoid"))
+
     layers_specs_lst.append((10, "softmax"))
         
     #----------------
@@ -103,19 +104,103 @@ def main():
 
 
     X_train_lst = X_train.tolist()
-    random.shuffle(X_train_lst)
+    random.shuffle(X_train) # X_train_lst)
 
 
+    all_train__nabla_JW_lst = [] # 3D numpy arr - [training_image, layer, 2d_W_gradient]
+    all_train__nabla_Jb_lst = [] # 3D numpy arr - [training_image, layer, 1d_b_gradient]
 
-    for i, x_input in enumerate(X_train_lst[:1000]):
+    for i, x_input in enumerate(X_train[:1000]):
 
         # print("example - ", i)
 
         y_true = Y_train[i]
-        rf_multilayer.model__backprop(x_input, y_true, model)
+        layers_data_backprop_map = rf_multilayer.model__backprop(x_input, y_true, model)
 
 
+
+        all_train__nabla_JW_lst.append(layers_data_backprop_map["nabla_JW_lst"])
+        all_train__nabla_Jb_lst.append(layers_data_backprop_map["nabla_Jb_lst"])
+
+
+    #-------------------------------------------------------------
+    def plot():
+
+        fig, axs = plt.subplots(nrows=len(model.layers_lst), ncols=1, figsize=(9, 6),
+            subplot_kw={'xticks': [], 'yticks': []})
+
+
+
+       
+
+
+
+
+        for example__nabla_JW_lst in all_train__nabla_JW_lst[-50:]:
+
+            print(example__nabla_JW_lst)
+            print(len(example__nabla_JW_lst))
+
+
+            exit()
+
+            # one axis per layer
+            for i, ax in enumerate(axs):
+                
+
+                layer__nabla_JW = example__nabla_JW_lst[i]
+
+
+                print("---------- layer %s - %s"%(i, str(layer__nabla_JW.shape)))
+                print(layer__nabla_JW)
+
+
+                ax.imshow(layer__nabla_JW, cmap=plt.cm.gray_r,
+                    interpolation='nearest')
+
+                # ax.grid(True)
+                # ax.plot()
+
+
+        plt.show()
+
+
+    #-------------------------------------------------------------
+    def plot_examples():
+
+
+        fig, axs = plt.subplots(nrows=3, ncols=6, figsize=(9, 6),
+                        subplot_kw={'xticks': [], 'yticks': []})
+
+
+
+        for i, ax in enumerate(axs.flat):
         
+            # plt.figure(figsize=(8, 5))
+            
+            print(type(i))
+            print(type(ax))
+
+            x_input = X_train_origin[i]
+            y_true  = Y_train[i]
+
+
+            ax.set_title("label: %d" % (y_true))
+
+            ax.imshow(x_input.reshape(8, 8), cmap=plt.cm.gray_r,
+                    interpolation='nearest')
+
+
+        plt.show()
+
+    
+
+
+    #-------------------------------------------------------------
+
+
+    # plot_examples()
+    plot()    
 
 
 

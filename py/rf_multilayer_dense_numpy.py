@@ -16,6 +16,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 import rf_utils
 
@@ -275,16 +276,17 @@ def model__backprop(p_x_input,
     #-------------------------------------------------------------
     
     
-
-    nabla_JW_lst = []
-    nabla_Jb_lst = []
+    # one gradient (as a 2numpy array) per layer
+    nabla_JW_lst = [] # 2D numpy array  
+    nabla_Jb_lst = [] # 1D numpy array
 
 
     #-----------------------
     # LAST_LAYER
     nabla_JW, nabla_Jb = last_layer_backprop()
     
-    nabla_JW_lst.insert(0, nabla_JW)
+    # prepend to beginning of list
+    nabla_JW_lst.insert(0, nabla_JW) 
     nabla_Jb_lst.insert(0, nabla_Jb)
 
     #-----------------------
@@ -298,17 +300,23 @@ def model__backprop(p_x_input,
         assert isinstance(layer, Layer)
 
         nabla_JW, nabla_Jb = layer_backprop(layer, i)
-        
-        nabla_JW_lst.insert(0, nabla_JW)
+
+        # prepend to beginning of list
+        nabla_JW_lst.insert(0, nabla_JW) 
         nabla_Jb_lst.insert(0, nabla_Jb)
 
 
-        # if the sum of absolute values of all elements of the JW gradient is
-        # equal to 0.0, there is no more change to the model weights and the model
-        # has reached some sort of minima. 
-        # exit training
-        if np.sum(np.absolute(nabla_JW)) == 0.0:
-            break
+        # # if the sum of absolute values of all elements of the JW gradient is
+        # # equal to 0.0, there is no more change to the model weights and the model
+        # # has reached some sort of minima. 
+        # # exit training
+        # if np.sum(np.absolute(nabla_JW)) == 0.0:
+        #     break
+
+
+
+
+    
 
 
 
