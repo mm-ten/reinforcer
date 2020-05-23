@@ -30,7 +30,7 @@ class Model:
 class Layer:
     def __init__(self, p_neurons_num_int, p_input_dim_int, p_activ_fn_str):
         self.neurons_num_int = p_neurons_num_int
-        self.W               = np.random.uniform(size = (p_neurons_num_int, p_input_dim_int), high=0.1, low=-0.1)
+        self.W               = np.random.uniform(size=(p_neurons_num_int, p_input_dim_int), low=-0.1, high=0.1)
         
         # this is very important; 
         # size specifies only one dimension 
@@ -40,22 +40,11 @@ class Layer:
         # so the following is wrong
         # bias = np.random.uniform(low=low, high=high, size=(number_of_neurons, 1))
         # but this is correct:
-        self.bias = np.random.uniform(size = (p_neurons_num_int, ), high=0.1, low=-0.1)
+        self.bias = np.random.uniform(size=(p_neurons_num_int, ), low=-0.1, high=0.1)
         
         # ACTIVATION_FUNS
         self.activation_fn       = rf_utils.get_activation_fn(p_activ_fn_str)
         self.activation_deriv_fn = rf_utils.get_activation_deriv_fn(p_activ_fn_str)
-        
-#-------------------------------------------------------------
-def model__loss(p_y_pred, p_y_true):
-    loss = np.sum((p_y_pred - p_y_true) ** 2)
-    J    = loss
-    return J
-
-#-------------------------------------------------------------
-def model__loss_deriv(p_y_pred, p_y_true):
-    J_deriv = 2 * (p_y_pred - p_y_true)
-    return J_deriv
 
 #-------------------------------------------------------------
 # MODEL_CREATE
@@ -95,9 +84,9 @@ def model__forward(p_x_input,
     
     # IMPORTANT!! - intermediate layer results are saved to be reused
     #               when doing back-propagation calculations.
-    x__layers_in_lst  = []
-    z__layers_out_lst = []
-    y__layers_out_lst = []
+    x__layers_vals_lst = []
+    z__layers_out_lst  = []
+    # y__layers_out_lst = []
     
     L_prev_output = p_x_input
     for i, l in enumerate(p_model.layers_lst):
@@ -135,20 +124,20 @@ def model__forward(p_x_input,
             print("y   shape - %s"%(str(y.shape)))
             
         # CACHE_VALUES
-        x__layers_in_lst.append(x)
+        x__layers_vals_lst.append(x)
         z__layers_out_lst.append(z)
-        y__layers_out_lst.append(y)
+        # y__layers_out_lst.append(y)
         
         L_prev_output = y
         
     y_final = L_prev_output
-    layers_data_map = {
-        "x__layers_in_lst":  x__layers_in_lst,
-        "z__layers_out_lst": z__layers_out_lst,
-        "y__layers_out_lst": y__layers_out_lst
+    layers_data_forward_map = {
+        "x__layers_vals_lst": x__layers_vals_lst,
+        "z__layers_out_lst":  z__layers_out_lst,
+        # "y__layers_out_lst": y__layers_out_lst
 
     }
-    return y_final, layers_data_map
+    return y_final, layers_data_forward_map
 
 #-------------------------------------------------------------
 # BACKPROPAGATION
@@ -159,10 +148,10 @@ def model__backprop(p_x_input,
     p_debug_info_bool=False):
     
     # FORWARD_PASS
-    y_pred, layers_data_map = model__forward(p_x_input, p_model, p_print_shapes_bool=False)
+    y_pred, layers_data_forward_map = model__forward(p_x_input, p_model, p_print_shapes_bool=False)
     
-    x__layers_in_lst  = layers_data_map["x__layers_in_lst"]
-    z__layers_out_lst = layers_data_map["z__layers_out_lst"]
+    x__layers_vals_lst = layers_data_forward_map["x__layers_vals_lst"]
+    z__layers_out_lst  = layers_data_forward_map["z__layers_out_lst"]
     
     lst_delta = []
     
@@ -174,29 +163,28 @@ def model__backprop(p_x_input,
 
 
         # LOSS
-        loss = model__loss(y_pred, p_y_true)
-        J    = loss
+        loss = rf_utils.loss(y_pred, p_y_true)
 
         # LOSS_DERIVATIVE
-        J_deriv = model__loss_deriv(y_pred, p_y_true)
+        loss_deriv = rf_utils.loss_deriv(y_pred, p_y_true)
         
         
         
-        x = x__layers_in_lst[-1]  # input "x" vector for this layer
-        z = z__layers_out_lst[-1] # output "z" vector (pre-activation vector) for this layer
+        x = x__layers_vals_lst[-1] # input "x" vector for this layer
+        z = z__layers_out_lst[-1]  # output "z" vector (pre-activation vector) for this layer
         
         
         
         if p_debug_info_bool:
             print("========================= L %s", 0)
-            print("J - ", J)
-            print("J_deriv - ", J_deriv)
+            print("loss - ", loss)
+            print("loss_deriv - ", loss_deriv)
             print("z - ", z)
             print(rf_utils.softmax_deriv(z))
 
         #-----------------------
         # DELTA
-        delta = J_deriv * layer.activation_deriv_fn(z)
+        delta = loss_deriv * layer.activation_deriv_fn(z)
         lst_delta.append(delta)
         
         if p_debug_info_bool:
@@ -219,13 +207,15 @@ def model__backprop(p_x_input,
         layer.bias = layer.bias - p_learning_rate_f * nabla_Jb
         
 
+        return nabla_JW, nabla_Jb
+
     #-------------------------------------------------------------
     def layer_backprop(p_layer,
         p_index_int):
         
         nonlocal lst_delta
 
-        x = x__layers_in_lst[p_index_int]  # input "x" vector for this layer
+        x = x__layers_vals_lst[p_index_int]  # input "x" vector for this layer
         z = z__layers_out_lst[p_index_int] # output "z" vector (pre-activation vector) for this layer
 
         # LAYER_NEXT
@@ -261,6 +251,7 @@ def model__backprop(p_x_input,
         nabla_Jb = delta
         
         if p_debug_info_bool:
+            
             print("nabla JW - ", nabla_JW.shape)
             print("nable Jb - ", nabla_Jb.shape)
 
@@ -269,14 +260,61 @@ def model__backprop(p_x_input,
         p_layer.W    = p_layer.W    - p_learning_rate_f * nabla_JW
         p_layer.bias = p_layer.bias - p_learning_rate_f * nabla_Jb
         
-    #-------------------------------------------------------------
-    
-    # LAST_LAYER
-    last_layer_backprop()
-    
-    # ALL_LAYERS
-    remaining_layers_lst = reversed(list(enumerate(p_model.layers_lst[:-1])))
-    for i, l in remaining_layers_lst:
+
+
+
         
 
-        layer_backprop(l, i)
+
+
+        
+
+
+        return nabla_JW, nabla_Jb
+
+    #-------------------------------------------------------------
+    
+    
+
+    nabla_JW_lst = []
+    nabla_Jb_lst = []
+
+
+    #-----------------------
+    # LAST_LAYER
+    nabla_JW, nabla_Jb = last_layer_backprop()
+    
+    nabla_JW_lst.insert(0, nabla_JW)
+    nabla_Jb_lst.insert(0, nabla_Jb)
+
+    #-----------------------
+    # ALL_LAYERS
+    # "p_model.layers_lst[:-1]" - take all layers except the last one, since we process
+    #                             that individuall with last_layer_backprop().
+    # reversed() - reverse order so that we have a descending list of layers (from last layer first, 
+    #              and so on).
+    remaining_layers_lst = reversed(list(enumerate(p_model.layers_lst[:-1])))
+    for i, layer in remaining_layers_lst:
+        assert isinstance(layer, Layer)
+
+        nabla_JW, nabla_Jb = layer_backprop(layer, i)
+        
+        nabla_JW_lst.insert(0, nabla_JW)
+        nabla_Jb_lst.insert(0, nabla_Jb)
+
+
+        # if the sum of absolute values of all elements of the JW gradient is
+        # equal to 0.0, there is no more change to the model weights and the model
+        # has reached some sort of minima. 
+        # exit training
+        if np.sum(np.absolute(nabla_JW)) == 0.0:
+            break
+
+
+
+
+    layers_data_backprop_map = {
+        "nabla_JW_lst": nabla_JW_lst,
+        "nabla_Jb_lst": nabla_Jb_lst
+    }
+    return layers_data_backprop_map

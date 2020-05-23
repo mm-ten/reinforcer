@@ -18,6 +18,7 @@
 import os, sys
 modd_str = os.path.abspath(os.path.dirname(__file__))
 
+import random
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -55,8 +56,8 @@ def main():
     layers_specs_lst = [
         (20, "sigmoid"),
     ]
-    for i in range(0, 3):
-        layers_specs_lst.append((20, "sigmoid"))
+    for i in range(0, 10):
+        layers_specs_lst.append((40, "sigmoid"))
     layers_specs_lst.append((10, "softmax"))
         
     #----------------
@@ -67,8 +68,8 @@ def main():
     model = rf_multilayer.model__create(layers_specs_lst, p_input_dim_int=64)
 
     # INPUT
-    x_input = X_test[0]
-    y_true  = Y_train[0]
+    x_input = X_test[20]
+    y_true  = Y_test[20]
 
     #-------------------------------------------------------------
     # MODEL_FORWARD
@@ -81,6 +82,10 @@ def main():
 
         print("predicted y (%s) - true y (%s)"%(np.argmax(y), p_y_true))
 
+        # make sure that the sum of all elements of the "y" vector (softmax output)
+        # is very close to 1.0 (its not always exactly 1.0 due to lack of numerical accuracy)
+        assert abs(sum(y)-1.0)<0.1
+
     #-------------------------------------------------------------
     test_forward(x_input, y_true)
 
@@ -92,18 +97,25 @@ def main():
 
     print("BACKPROP")
 
-    for e in range(0, 10):
+    # for e in range(0, 10):
         
-        # BACKPROP_ALL_EXAMPLES
-        for i, x_input in enumerate(X_train):
-
-            print("example - ", i)
-
-            y_true = Y_train[i]
-            rf_multilayer.model__backprop(x_input, y_true, model)
+    # BACKPROP_ALL_EXAMPLES
 
 
-    
+    X_train_lst = X_train.tolist()
+    random.shuffle(X_train_lst)
+
+
+
+    for i, x_input in enumerate(X_train_lst[:1000]):
+
+        # print("example - ", i)
+
+        y_true = Y_train[i]
+        rf_multilayer.model__backprop(x_input, y_true, model)
+
+
+        
 
 
 

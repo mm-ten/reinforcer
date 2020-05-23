@@ -26,6 +26,20 @@ def one_hot(n_classes: int, y: int):
     return np.eye(n_classes)[y]
 
 #-------------------------------------------------------------
+# LOSS
+#-------------------------------------------------------------
+def loss(p_y_pred, p_y_true):
+    loss = np.sum((p_y_pred - p_y_true) ** 2)
+    J    = loss
+    return J
+
+#-------------------------------------------------------------
+# LOSS_DERIVATIVE
+def loss_deriv(p_y_pred, p_y_true):
+    J_deriv = 2 * (p_y_pred - p_y_true)
+    return J_deriv
+
+#-------------------------------------------------------------
 # ACTIVATION_FN
 #-------------------------------------------------------------
 def get_activation_fn(p_activ_fn_str):
@@ -50,7 +64,7 @@ def sigmoid(x):
 
 # SIGMOID_DERIVATIVE
 def sigmoid_deriv(x):
-    return sigmoid(x) * (1 - sigmoid(x)) # MIGHT BE WRONG DERIVATIVE
+    return sigmoid(x) * (1 - sigmoid(x))
             
 #-------------------------------------------------------------
 # SOFTMAX
