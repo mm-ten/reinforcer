@@ -16,10 +16,6 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
-
-
-
-
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
@@ -33,12 +29,6 @@ class Model:
 class Layer:
     def __init__(self, p_neurons_num_int, p_input_dim_int, p_activ_fn_str):
 
-#-------------------------------------------------------------
-# Generate dummy data
-x_train = np.random.random((1000, 20))
-y_train = np.random.randint(2, size=(1000, 1))
-x_test  = np.random.random((100, 20))
-y_test  = np.random.randint(2, size=(100, 1))
 
 #-------------------------------------------------------------
 def model__create(p_layers_specs_lst,
@@ -94,3 +84,22 @@ def model__fit():
 #-------------------------------------------------------------
 def model__evaluate():
     score = model.evaluate(x_test, y_test, batch_size=128)
+
+
+#-------------------------------------------------------------
+# Generate dummy data
+def fn_generate_dummy_data():
+    """
+    :return:
+    """
+    x_train = np.random.random((1000, 20))
+    y_train = np.random.randint(2, size=(1000, 1))
+    x_test  = np.random.random((100, 20))
+    y_test  = np.random.randint(2, size=(100, 1))
+
+    return (x_train, y_train), (x_test, y_test)
+
+if __name__ == "__main__":
+    pass
+
+
