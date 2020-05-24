@@ -15,9 +15,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+import os, sys
+modd_str = os.path.abspath(os.path.dirname(__file__))
+
+import random
+
 import numpy as np
 import matplotlib.pyplot as plt
 
+sys.path.append("%s/.."%(modd_str))
 import rf_utils
 
 #-------------------------------------------------------------
@@ -74,6 +80,48 @@ def model__create(p_layers_specs_lst,
     model_output_size_int = layers_lst[-1].neurons_num_int
     model = Model(layers_lst, model_output_size_int)
     return model
+
+#-------------------------------------------------------------
+def model__fit(p_x_lst,
+    p_y_true_lst,
+    p_model):
+
+    # SHUFFLE_INPUT
+    # random.shuffle(p_x_lst)
+
+
+    all_train__nabla_JW_lst = [] # 3D numpy arr - [training_example, network_layer, 2D_W_gradient]
+    all_train__nabla_Jb_lst = [] # 3D numpy arr - [training_example, network_layer, 1D_b_gradient]
+    
+    # TRAIN - over multiple training examples. 
+    #         accumulate gradient update values from each example backprop pass
+    for i, x_input in enumerate(p_x_lst[:60]):
+        # print("example - ", i)
+
+        y_true = p_y_true_lst[i]
+
+        # BACKPROP
+        all_layers_data_backprop_map = model__backprop(x_input, y_true, p_model)
+
+        # accumulate gradient values for each layer in the backprop pass.
+        all_train__nabla_JW_lst.append(all_layers_data_backprop_map["nabla_JW_lst"])
+        all_train__nabla_Jb_lst.append(all_layers_data_backprop_map["nabla_Jb_lst"])
+
+        # EARLY_HALT_CONDITION - if the model achieves zero loss (no gradient updates).
+        #                        in practice, unless their is 
+        # # if the sum of absolute values of all elements of the JW gradient is
+        # # equal to 0.0, there is no more change to the model weights and the model
+        # # has reached some sort of minima. 
+        # # exit training
+        # last_layer_nabla_JW = all_layers_data_backprop_map["nabla_JW_lst"][-1]
+        # if np.sum(np.absolute(last_layer_nabla_JW)) == 0.0:
+        #     break
+
+    train_data_map = {
+        "all_train__nabla_JW_lst": all_train__nabla_JW_lst,
+        "all_train__nabla_Jb_lst": all_train__nabla_Jb_lst
+    }
+    return train_data_map
 
 #-------------------------------------------------------------
 # FORWARD
@@ -264,13 +312,6 @@ def model__backprop(p_x_input,
 
 
 
-        
-
-
-
-        
-
-
         return nabla_JW, nabla_Jb
 
     #-------------------------------------------------------------
@@ -305,21 +346,7 @@ def model__backprop(p_x_input,
         nabla_JW_lst.insert(0, nabla_JW) 
         nabla_Jb_lst.insert(0, nabla_Jb)
 
-
-        # # if the sum of absolute values of all elements of the JW gradient is
-        # # equal to 0.0, there is no more change to the model weights and the model
-        # # has reached some sort of minima. 
-        # # exit training
-        # if np.sum(np.absolute(nabla_JW)) == 0.0:
-        #     break
-
-
-
-
-    
-
-
-
+    #-----------------------
 
     layers_data_backprop_map = {
         "nabla_JW_lst": nabla_JW_lst,

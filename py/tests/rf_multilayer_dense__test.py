@@ -27,7 +27,7 @@ from sklearn.datasets import load_digits
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 
-sys.path.append("%s/.."%(modd_str))
+sys.path.append("%s/../models"%(modd_str))
 import rf_multilayer_dense_numpy as rf_multilayer
 
 #-------------------------------------------------------------
@@ -103,24 +103,46 @@ def main():
     # BACKPROP_ALL_EXAMPLES
 
 
-    X_train_lst = X_train.tolist()
-    random.shuffle(X_train) # X_train_lst)
+    # X_train_lst = X_train.tolist()
+    # random.shuffle(X_train) # X_train_lst)
 
 
-    all_train__nabla_JW_lst = [] # 3D numpy arr - [training_image, layer, 2d_W_gradient]
-    all_train__nabla_Jb_lst = [] # 3D numpy arr - [training_image, layer, 1d_b_gradient]
-
-    for i, x_input in enumerate(X_train[:1000]):
-
-        # print("example - ", i)
-
-        y_true = Y_train[i]
-        layers_data_backprop_map = rf_multilayer.model__backprop(x_input, y_true, model)
+    
+    train_data_map = rf_multilayer.model__fit(X_train,
+        Y_train,
+        model)
+    all_train__nabla_JW_lst = train_data_map["all_train__nabla_JW_lst"]
+    all_train__nabla_Jb_lst = train_data_map["all_train__nabla_Jb_lst"]
 
 
 
-        all_train__nabla_JW_lst.append(layers_data_backprop_map["nabla_JW_lst"])
-        all_train__nabla_Jb_lst.append(layers_data_backprop_map["nabla_Jb_lst"])
+    # all_train__nabla_JW_lst = [] # 3D numpy arr - [training_image, layer, 2d_W_gradient]
+    # all_train__nabla_Jb_lst = [] # 3D numpy arr - [training_image, layer, 1d_b_gradient]
+    #
+    # # TRAIN - over multiple training examples. 
+    # #         accumulate gradient update values from each example backprop pass
+    # for i, x_input in enumerate(X_train[:1000]):
+    #     # print("example - ", i)
+    #
+    #     y_true = Y_train[i]
+    #
+    #     # BACKPROP
+    #     all_layers_data_backprop_map = rf_multilayer.model__backprop(x_input, y_true, model)
+    #
+    #     # accumulate gradient values for each layer in the backprop pass.
+    #     all_train__nabla_JW_lst.append(all_layers_data_backprop_map["nabla_JW_lst"])
+    #     all_train__nabla_Jb_lst.append(all_layers_data_backprop_map["nabla_Jb_lst"])
+    #
+    #     # EARLY_HALT_CONDITION - if the model achieves zero loss (no gradient updates).
+    #     #                        in practice, unless their is 
+    #     # # if the sum of absolute values of all elements of the JW gradient is
+    #     # # equal to 0.0, there is no more change to the model weights and the model
+    #     # # has reached some sort of minima. 
+    #     # # exit training
+    #     # last_layer_nabla_JW = all_layers_data_backprop_map["nabla_JW_lst"][-1]
+    #     # if np.sum(np.absolute(last_layer_nabla_JW)) == 0.0:
+    #     #     break
+        
 
 
     #-------------------------------------------------------------
@@ -131,18 +153,14 @@ def main():
 
 
 
-       
 
 
 
+        for example__nabla_JW_lst in all_train__nabla_JW_lst[-2:]:
 
-        for example__nabla_JW_lst in all_train__nabla_JW_lst[-50:]:
+            # print(example__nabla_JW_lst)
+            # print(len(example__nabla_JW_lst))
 
-            print(example__nabla_JW_lst)
-            print(len(example__nabla_JW_lst))
-
-
-            exit()
 
             # one axis per layer
             for i, ax in enumerate(axs):
@@ -153,6 +171,12 @@ def main():
 
                 print("---------- layer %s - %s"%(i, str(layer__nabla_JW.shape)))
                 print(layer__nabla_JW)
+
+                ax.set_ylabel(layer__nabla_JW.shape[0], fontsize=8)
+                ax.set_xlabel(layer__nabla_JW.shape[1], fontsize=8)
+                ax.yaxis.set_label_coords(0, 1) # align at the top of Y axis
+                ax.xaxis.set_label_coords(0, 0) # align at the left of X axis
+                # ax.set_title("dim: %s"%(str(layer__nabla_JW.shape)))
 
 
                 ax.imshow(layer__nabla_JW, cmap=plt.cm.gray_r,
