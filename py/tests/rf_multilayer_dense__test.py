@@ -33,7 +33,7 @@ import rf_multilayer_dense_numpy as rf_multilayer
 #-------------------------------------------------------------
 def main():
 
-    
+
 
     #-----------------------
     # LOAD_DATA
@@ -60,7 +60,7 @@ def main():
         layers_specs_lst.append((40, "sigmoid"))
 
     layers_specs_lst.append((10, "softmax"))
-        
+
     #----------------
 
 
@@ -99,7 +99,7 @@ def main():
     print("BACKPROP")
 
     # for e in range(0, 10):
-        
+
     # BACKPROP_ALL_EXAMPLES
 
 
@@ -107,7 +107,7 @@ def main():
     # random.shuffle(X_train) # X_train_lst)
 
 
-    
+
     train_data_map = rf_multilayer.model__fit(X_train,
         Y_train,
         model)
@@ -142,7 +142,7 @@ def main():
     #     # last_layer_nabla_JW = all_layers_data_backprop_map["nabla_JW_lst"][-1]
     #     # if np.sum(np.absolute(last_layer_nabla_JW)) == 0.0:
     #     #     break
-        
+
 
 
     #-------------------------------------------------------------
@@ -164,7 +164,7 @@ def main():
 
             # one axis per layer
             for i, ax in enumerate(axs):
-                
+
 
                 layer__nabla_JW = example__nabla_JW_lst[i]
 
@@ -199,9 +199,9 @@ def main():
 
 
         for i, ax in enumerate(axs.flat):
-        
+
             # plt.figure(figsize=(8, 5))
-            
+
             print(type(i))
             print(type(ax))
 
@@ -217,14 +217,14 @@ def main():
 
         plt.show()
 
-    
+
 
 
     #-------------------------------------------------------------
 
 
     # plot_examples()
-    plot()    
+    plot()
 
 
 
@@ -241,4 +241,5 @@ def main():
 
 
 
-main()
+if __name__ == "__main__":
+    main()
