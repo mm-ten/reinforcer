@@ -1,6 +1,6 @@
 # Reinforcer
 
-Machine Learning experimentation and utility functions
+Machine Learning Experimentation and Utility Functions
 
 ML functions based on Numpy, Tensorflow, Keras.
-plotting done with Matplotlib.
+Plotting done with Matplotlib.
